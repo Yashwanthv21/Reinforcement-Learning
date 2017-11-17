@@ -30,7 +30,7 @@ class Gridworld(mdp.MarkovDecisionProcess):
 
         # parameters
         self.livingReward = 0.0
-        self.noise = 0.2
+        # self.noise = 0.2
 
     def setLivingReward(self, reward):
         """
@@ -42,11 +42,11 @@ class Gridworld(mdp.MarkovDecisionProcess):
         """
         self.livingReward = reward
 
-    def setNoise(self, noise):
-        """
-        The probability of moving in an unintended direction.
-        """
-        self.noise = noise
+    # def setNoise(self, noise):
+    #     """
+    #     The probability of moving in an unintended direction.
+    #     """
+    #     self.noise = noise
 
 
     def getPossibleActions(self, state):
@@ -140,21 +140,22 @@ class Gridworld(mdp.MarkovDecisionProcess):
 
         if action == 'north' or action == 'south':
             if action == 'north':
-                successors.append((northState,1-self.noise))
+                successors.append((northState,1-0))
             else:
-                successors.append((southState,1-self.noise))
+                successors.append((southState,1-0))
 
-            massLeft = self.noise
+            massLeft = 0
             successors.append((westState,massLeft/2.0))
+            successors.append((eastState,massLeft/2.0))
             successors.append((eastState,massLeft/2.0))
 
         if action == 'west' or action == 'east':
             if action == 'west':
-                successors.append((westState,1-self.noise))
+                successors.append((westState,1-0))
             else:
-                successors.append((eastState,1-self.noise))
+                successors.append((eastState,1-0))
 
-            massLeft = self.noise
+            massLeft = 0
             successors.append((northState,massLeft/2.0))
             successors.append((southState,massLeft/2.0))
 
@@ -271,38 +272,6 @@ def makeGrid(gridString):
             grid[x][y] = el
     return grid
 
-def getCliffGrid():
-    grid = [[' ',' ',' ',' ',' '],
-            ['S',' ',' ',' ',10],
-            [-100,-100, -100, -100, -100]]
-    return Gridworld(makeGrid(grid))
-
-def getCliffGrid2():
-    grid = [[' ',' ',' ',' ',' '],
-            [8,'S',' ',' ',10],
-            [-100,-100, -100, -100, -100]]
-    return Gridworld(grid)
-
-def getDiscountGrid():
-    grid = [[' ',' ',' ',' ',' '],
-            [' ','#',' ',' ',' '],
-            [' ','#', 1,'#', 10],
-            ['S',' ',' ',' ',' '],
-            [-10,-10, -10, -10, -10]]
-    return Gridworld(grid)
-
-def getBridgeGrid():
-    grid = [[ '#',-100, -100, -100, -100, -100, '#'],
-            [   1, 'S',  ' ',  ' ',  ' ',  ' ',  10],
-            [ '#',-100, -100, -100, -100, -100, '#']]
-    return Gridworld(grid)
-
-# def getBookGrid():
-#     grid = [[' ',' ',' ',+1],
-#             [' ','#',' ',-1],
-#             ['S',' ',' ',' ']]
-#     return Gridworld(grid)
-
 def getBookGrid():
     grid = [['P', ' ', ' ', ' ', 'S'],
             [' ', ' ', ' ', ' ', ' '],
@@ -311,14 +280,6 @@ def getBookGrid():
             ['D', ' ', ' ', ' ', 'P']]
     return Gridworld(grid)
 
-
-def getMazeGrid():
-    grid = [[' ',' ',' ',+1],
-            ['#','#',' ','#'],
-            [' ','#',' ',' '],
-            [' ','#','#',' '],
-            ['S',' ',' ',' ']]
-    return Gridworld(grid)
 
 
 
@@ -466,7 +427,7 @@ if __name__ == '__main__':
     mdpFunction = getattr(gridworld, "get"+opts.grid)
     mdp = mdpFunction()
     mdp.setLivingReward(opts.livingReward)
-    mdp.setNoise(opts.noise)
+    # mdp.setNoise(opts.noise)
     env = gridworld.GridworldEnvironment(mdp)
 
 
@@ -481,13 +442,14 @@ if __name__ == '__main__':
         display = graphicsGridworldDisplay.GraphicsGridworldDisplay(mdp, opts.gridSize, opts.speed)
     try:
         display.start()
+        print("started")
     except KeyboardInterrupt:
         sys.exit(0)
 
     ###########################
     # GET THE AGENT
     ###########################
-
+    # print("hereeeeeeeeeeeee")
     import valueIterationAgents, qlearningAgents
     a = None
     if opts.agent == 'value':
@@ -551,8 +513,8 @@ if __name__ == '__main__':
             displayCallback = lambda state: display.displayNullValues(state)
         else:
             if opts.agent == 'random': displayCallback = lambda state: display.displayValues(a, state, "CURRENT VALUES")
-            if opts.agent == 'value': displayCallback = lambda state: display.displayValues(a, state, "CURRENT VALUES")
-            if opts.agent == 'q': displayCallback = lambda state: display.displayQValues(a, state, "CURRENT Q-VALUES")
+            elif opts.agent == 'value': displayCallback = lambda state: display.displayValues(a, state, "CURRENT VALUES")
+            elif opts.agent == 'q': displayCallback = lambda state: display.displayQValues(a, state, "CURRENT Q-VALUES")
 
     messageCallback = lambda x: printString(x)
     if opts.quiet:

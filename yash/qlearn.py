@@ -24,7 +24,7 @@ class QLearn:
         else:
             self.q[(state, action)] = oldv + self.alpha * (value - oldv)
 
-    def chooseAction(self, state):
+    def chooseActionGreedy(self, state):
 
         q = [self.getQ(state, a) for a in self.actions]
         maxQ = max(q)
@@ -38,6 +38,16 @@ class QLearn:
             i = q.index(maxQ)
 
         action = self.actions[i]
+        return action
+
+    def chooseActionEploit(self, state):
+        if random.random() <= 85:
+            return self.chooseActionGreedy(state)
+        else:
+            return self.chooseActionRandom(state)
+
+    def chooseActionRandom(self, state):
+        action = random.choice(self.actions)
         return action
 
     def learn(self, state1, action1, reward, state2):
