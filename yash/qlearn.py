@@ -20,9 +20,11 @@ class QLearn:
         '''
         oldv = self.q.get((state, action), None)
         if oldv is None:
-            self.q[(state, action)] = reward
+            # self.q[(state, action)] = reward
+            self.q[(state, action)] = self.alpha * value
         else:
-            self.q[(state, action)] = oldv + self.alpha * (value - oldv)
+            # self.q[(state, action)] = oldv + self.alpha * (value - oldv)
+            self.q[(state, action)] = (1-self.alpha)*oldv + self.alpha*value
 
     def chooseActionGreedy(self, state):
 
@@ -41,7 +43,7 @@ class QLearn:
         return action
 
     def chooseActionEploit(self, state):
-        if random.random() <= 85:
+        if random.random() <= 0.85:
             return self.chooseActionGreedy(state)
         else:
             return self.chooseActionRandom(state)
@@ -53,11 +55,3 @@ class QLearn:
     def learn(self, state1, action1, reward, state2):
         maxqnew = max([self.getQ(state2, a) for a in self.actions])
         self.learnQ(state1, action1, reward, reward + self.gamma*maxqnew)
-
-import math
-def ff(f,n):
-    fs = "{:f}".format(f)
-    if len(fs) < n:
-        return ("{:"+n+"s}").format(fs)
-    else:
-        return fs[:n]

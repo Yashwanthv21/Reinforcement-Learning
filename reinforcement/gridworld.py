@@ -57,11 +57,19 @@ class Gridworld(mdp.MarkovDecisionProcess):
         that "exit" states transition to the terminal
         state under the special action "done".
         """
-        if state == self.grid.terminalState:
-            return ()
-        x,y = state
-        if type(self.grid[x][y]) == int:
-            return ('exit',)
+        # if state == self.grid.terminalState:
+        #     return ()
+        # x,y = state
+        # if type(self.grid[x][y]) == int:
+        #     return ('exit',)
+
+        x, y = state
+        if self.grid[x][y] == 'P':
+            return 'pickup'
+
+        if self.grid[x][y] == 'D':
+            return 'drop'
+
         return ('north','west','south','east')
 
     def getStates(self):
@@ -69,12 +77,13 @@ class Gridworld(mdp.MarkovDecisionProcess):
         Return list of all states.
         """
         # The true terminal state.
-        states = [self.grid.terminalState]
+        # states = [self.grid.terminalState]
+        states = []
         for x in range(self.grid.width):
             for y in range(self.grid.height):
-                if self.grid[x][y] != '#':
-                    state = (x,y)
-                    states.append(state)
+                # if self.grid[x][y] != '#':
+                state = (x,y)
+                states.append(state)
         return states
 
     def getReward(self, state, action, nextState):
@@ -85,8 +94,8 @@ class Gridworld(mdp.MarkovDecisionProcess):
         departed (as in the R+N book examples, which more or
         less use this convention).
         """
-        if state == self.grid.terminalState:
-            return 0.0
+        # if state == self.grid.terminalState:
+        #     return 0.0
         x, y = state
         cell = self.grid[x][y]
         if type(cell) == int or type(cell) == float:
@@ -108,8 +117,8 @@ class Gridworld(mdp.MarkovDecisionProcess):
         This convention is to make the grids line up with the examples
         in the R+N textbook.
         """
-        return state == self.grid.terminalState
-
+        # return state == self.grid.terminalState
+        return False
 
     def getTransitionStatesAndProbs(self, state, action):
         """
@@ -121,15 +130,15 @@ class Gridworld(mdp.MarkovDecisionProcess):
 
         if action not in self.getPossibleActions(state):
             raise "Illegal action!"
-
-        if self.isTerminal(state):
-            return []
+        #
+        # if self.isTerminal(state):
+        #     return []
 
         x, y = state
 
-        if type(self.grid[x][y]) == int or type(self.grid[x][y]) == float:
-            termState = self.grid.terminalState
-            return [(termState, 1.0)]
+        # if type(self.grid[x][y]) == int or type(self.grid[x][y]) == float:
+        #     termState = self.grid.terminalState
+        #     return [(termState, 1.0)]
 
         successors = []
 
@@ -188,11 +197,43 @@ class GridworldEnvironment(environment.Environment):
     def getPossibleActions(self, state):
         return self.gridWorld.getPossibleActions(state)
 
+    # def doAction(self, action):
+    #     state = self.getCurrentState()
+    #     (nextState, reward) = self.getRandomNextState(state, action)
+    #     self.state = nextState
+    #     return (nextState, reward)
+
+    def isPickup(self, state):
+        x, y = state
+        if self.grid[x][y] == 'P':
+            return True
+        return False
+
+    def isDropoff(self, state):
+        x, y = state
+        if self.grid[x][y] == 'D':
+            return True
+        return False
+
     def doAction(self, action):
         state = self.getCurrentState()
-        (nextState, reward) = self.getRandomNextState(state, action)
-        self.state = nextState
-        return (nextState, reward)
+        y,x = state
+        # print (x,y) north','west','south','east'
+        if action == "east":
+            if y < 4:
+                y += 1
+        elif action == "west":
+            if y > 0:
+                y -= 1
+        elif action == "south":
+            if x > 0:
+                x -= 1
+        elif action == "north":
+            if x < 4:
+                x += 1
+        state = (x,y)
+        self.state = state
+        return (state, -1)
 
     def getRandomNextState(self, state, action, randObj=None):
         rand = -1.0
@@ -226,7 +267,7 @@ class Grid:
         self.width = width
         self.height = height
         self.data = [[initialValue for y in range(height)] for x in range(width)]
-        self.terminalState = 'TERMINAL_STATE'
+        # self.terminalState = 'TERMINAL_STATE'
 
     def __getitem__(self, i):
         return self.data[i]
@@ -271,31 +312,31 @@ def makeGrid(gridString):
             grid[x][y] = el
     return grid
 
-def getCliffGrid():
-    grid = [[' ',' ',' ',' ',' '],
-            ['S',' ',' ',' ',10],
-            [-100,-100, -100, -100, -100]]
-    return Gridworld(makeGrid(grid))
-
-def getCliffGrid2():
-    grid = [[' ',' ',' ',' ',' '],
-            [8,'S',' ',' ',10],
-            [-100,-100, -100, -100, -100]]
-    return Gridworld(grid)
-
-def getDiscountGrid():
-    grid = [[' ',' ',' ',' ',' '],
-            [' ','#',' ',' ',' '],
-            [' ','#', 1,'#', 10],
-            ['S',' ',' ',' ',' '],
-            [-10,-10, -10, -10, -10]]
-    return Gridworld(grid)
-
-def getBridgeGrid():
-    grid = [[ '#',-100, -100, -100, -100, -100, '#'],
-            [   1, 'S',  ' ',  ' ',  ' ',  ' ',  10],
-            [ '#',-100, -100, -100, -100, -100, '#']]
-    return Gridworld(grid)
+# def getCliffGrid():
+#     grid = [[' ',' ',' ',' ',' '],
+#             ['S',' ',' ',' ',10],
+#             [-100,-100, -100, -100, -100]]
+#     return Gridworld(makeGrid(grid))
+#
+# def getCliffGrid2():
+#     grid = [[' ',' ',' ',' ',' '],
+#             [8,'S',' ',' ',10],
+#             [-100,-100, -100, -100, -100]]
+#     return Gridworld(grid)
+#
+# def getDiscountGrid():
+#     grid = [[' ',' ',' ',' ',' '],
+#             [' ','#',' ',' ',' '],
+#             [' ','#', 1,'#', 10],
+#             ['S',' ',' ',' ',' '],
+#             [-10,-10, -10, -10, -10]]
+#     return Gridworld(grid)
+#
+# def getBridgeGrid():
+#     grid = [[ '#',-100, -100, -100, -100, -100, '#'],
+#             [   1, 'S',  ' ',  ' ',  ' ',  ' ',  10],
+#             [ '#',-100, -100, -100, -100, -100, '#']]
+#     return Gridworld(grid)
 
 # def getBookGrid():
 #     grid = [[' ',' ',' ',+1],
@@ -312,13 +353,13 @@ def getBookGrid():
     return Gridworld(grid)
 
 
-def getMazeGrid():
-    grid = [[' ',' ',' ',+1],
-            ['#','#',' ','#'],
-            [' ','#',' ',' '],
-            [' ','#','#',' '],
-            ['S',' ',' ',' ']]
-    return Gridworld(grid)
+# def getMazeGrid():
+#     grid = [[' ',' ',' ',+1],
+#             ['#','#',' ','#'],
+#             [' ','#',' ',' '],
+#             [' ','#','#',' '],
+#             ['S',' ',' ',' ']]
+#     return Gridworld(grid)
 
 
 
@@ -349,6 +390,7 @@ def printString(x): print x
 def runEpisode(agent, environment, discount, decision, display, message, pause, episode):
     returns = 0
     totalDiscount = 1.0
+    dropOff = 0
     environment.reset()
     if 'startEpisode' in dir(agent): agent.startEpisode()
     message("BEGINNING EPISODE: "+str(episode)+"\n")
@@ -360,15 +402,28 @@ def runEpisode(agent, environment, discount, decision, display, message, pause, 
         pause()
 
         # END IF IN A TERMINAL STATE
+        # actions = environment.getPossibleActions(state)
+        # if len(actions) == 0:
+        #     message("EPISODE "+str(episode)+" COMPLETE: RETURN WAS "+str(returns)+"\n")
+        #     return returns
+        r = 0
         actions = environment.getPossibleActions(state)
-        if len(actions) == 0:
-            message("EPISODE "+str(episode)+" COMPLETE: RETURN WAS "+str(returns)+"\n")
+        if actions == 'pickup' and not agent.hasBlock:
+            r = 12
+            agent.hasBlock = True
+        elif actions == 'drop' and agent.hasBlock:
+            r = 12
+            agent.hasBlock = False
+
+
+
+        if dropOff == 16:
             return returns
 
         # GET ACTION (USUALLY FROM AGENT)
         action = decision(state)
-        if action == None:
-            raise 'Error: Agent returned None action'
+        # if action == None:
+        #     raise 'Error: Agent returned None action'
 
         # EXECUTE ACTION
         nextState, reward = environment.doAction(action)
@@ -376,10 +431,10 @@ def runEpisode(agent, environment, discount, decision, display, message, pause, 
                 "\nTook action: "+str(action)+
                 "\nEnded in state: "+str(nextState)+
                 "\nGot reward: "+str(reward)+"\n")
+
         # UPDATE LEARNER
         if 'observeTransition' in dir(agent):
-            agent.observeTransition(state, action, nextState, reward)
-
+            agent.observeTransition(state, action, nextState, r + reward)
         returns += reward * totalDiscount
         totalDiscount *= discount
 
@@ -507,6 +562,8 @@ if __name__ == '__main__':
         if opts.episodes == 0:
             opts.episodes = 10
         class RandomAgent:
+            def __init__(self):
+                self.hasBlock = False
             def getAction(self, state):
                 return random.choice(mdp.getPossibleActions(state))
             def getValue(self, state):
@@ -518,6 +575,7 @@ if __name__ == '__main__':
                 return 'random'
             def update(self, state, action, nextState, reward):
                 pass
+
         a = RandomAgent()
     else:
         if not opts.manual: raise 'Unknown agent type: '+opts.agent
@@ -564,10 +622,10 @@ if __name__ == '__main__':
         pauseCallback = lambda : display.pause()
 
     # FIGURE OUT WHETHER THE USER WANTS MANUAL CONTROL (FOR DEBUGGING AND DEMOS)
-    if opts.manual:
-        decisionCallback = lambda state : getUserAction(state, mdp.getPossibleActions)
-    else:
-        decisionCallback = a.getAction
+    # if opts.manual:
+    #     decisionCallback = lambda state : getUserAction(state, mdp.getPossibleActions)
+    # else:
+    decisionCallback = a.getAction
 
     # RUN EPISODES
     if opts.episodes > 0:

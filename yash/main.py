@@ -13,6 +13,7 @@ class State:
            self.dblocks = 0
        self.locationX = x
        self.locationY = y
+       self.coordinates = (x,y)
 
 class Agent:
     def __init__(self):
@@ -39,63 +40,75 @@ def nextState(action,state):
     return next((s for s in states if s.locationX == x and s.locationY == y), None)
 
 
-def printData(state,reward,act,bank,iter):
-    print(iter,"Pos:",state.locationX,state.locationY,"action:",act,"reward:",reward,"Bank:",bank)
-
+def printData(state,reward,act,bank,iter, action):
+    print(iter,"Pos:",state.locationX,state.locationY,"Action",action,"Pick/Drop:",act,"reward:",reward,"Bank:",bank)
 
 states = []
+agent = None
+def setStates():
 
-states.append(State(1,1,True))
-states.append(State(1,2))
-states.append(State(1,3))
-states.append(State(1,4))
-states.append(State(1,5))
+    global states,agent
 
-states.append(State(2,1))
-states.append(State(2,2))
-states.append(State(2,3))
-states.append(State(2,4))
-states.append(State(2,5))
+    states.append(State(1, 1, True))
+    states.append(State(1, 2))
+    states.append(State(1, 3))
+    states.append(State(1, 4))
+    states.append(State(1, 5))
 
-states.append(State(3,1))
-states.append(State(3,2))
-states.append(State(3,3,True))
-states.append(State(3,4))
-states.append(State(3,5))
+    states.append(State(2, 1))
+    states.append(State(2, 2))
+    states.append(State(2, 3))
+    states.append(State(2, 4))
+    states.append(State(2, 5))
 
-states.append(State(4,1,True))
-states.append(State(4,2))
-states.append(State(4,3))
-states.append(State(4,4,dropoff=True))
-states.append(State(4,5))
+    states.append(State(3, 1))
+    states.append(State(3, 2))
+    states.append(State(3, 3, True))
+    states.append(State(3, 4))
+    states.append(State(3, 5))
 
-states.append(State(5,1,dropoff=True))
-states.append(State(5,2))
-states.append(State(5,3))
-states.append(State(5,4))
-states.append(State(5,5,True))
+    states.append(State(4, 1, True))
+    states.append(State(4, 2))
+    states.append(State(4, 3))
+    states.append(State(4, 4, dropoff=True))
+    states.append(State(4, 5))
 
-agent = Agent()
+    states.append(State(5, 1, dropoff=True))
+    states.append(State(5, 2))
+    states.append(State(5, 3))
+    states.append(State(5, 4))
+    states.append(State(5, 5, True))
+
+    agent = Agent()
 
 bankAccount = 0
-
+i = 0
 # Initial state is 1,5
 Q = QLearn(["N","E","W","S"])
 
+def reset():
+    global states, agent
+    states = []
+    agent = None
+    setStates()
 
 def startSolver():
     # global dropCount,bankAccount
-    bankAccount = 0
+    global bankAccount,agent,states
 
     initialState = next((x for x in states if x.locationX == 1 and x.locationY == 5), None)
-    action = Q.chooseActionGreedy((initialState.locationX, initialState.locationY))
+    coo = initialState.coordinates
+    action = Q.chooseActionGreedy(coo)
     state = nextState(action, initialState)
-    reward = -1
+    reward = 0
     bankAccount += reward
-    Q.learn(initialState, action, reward, state)
+    curr = 0
+    curr += reward
+    Q.learn(coo, action, reward, state.coordinates)
     dropCount = 0
     i = 0
-    while i < 3000 and dropCount < 16:
+    printData(state, reward, 0, bankAccount, i, action)
+    while i < 3000:
         i += 1
         reward = -1
         a = 0
@@ -104,30 +117,45 @@ def startSolver():
             reward = 12
             agent.hasBlock = True
             a = 1
+            if state.pblocks == 0:
+                state.pickup = False
         elif state.dropoff and agent.hasBlock and state.dblocks < 8:
             state.dblocks += 1
             reward = 12
             agent.hasBlock = False
             dropCount += 1
             a = 2
+            if state.dblocks == 8:
+                state.dropoff = False
 
-        action = Q.chooseActionGreedy((state.locationX, state.locationY))
+        action = Q.chooseActionGreedy(state.coordinates)
         state1 = nextState(action, state)
 
         bankAccount += reward
 
-        printData(state, reward, a, bankAccount, i)
-        Q.learn(state, action, reward, state1)
+        # printData(state, reward, a, bankAccount, i, action)
+        # if a == 1:
+        #     print ("Pickup")
+        # elif a == 2:
+        #     print ("Drop")
+        # else:
+        #     print ("Step")
+        Q.learn(state.coordinates, action, reward, state1.coordinates)
         state = state1
+
+        if dropCount == 16:
+            dropCount = 0
+            reset()
 
 
 # https://stackoverflow.com/questions/7125467/find-object-in-list-that-has-attribute-equal-to-some-value-that-meets-any-condi
 
-
-
+setStates()
 startSolver()
 
-print(Q.q)
+for key in Q.q:
+    print (key, Q.q.get(key))
+
 
 
 

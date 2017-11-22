@@ -33,6 +33,7 @@ class GraphicsGridworldDisplay:
         policy = {}
         states = self.gridworld.getStates()
         for state in states:
+            # get Q values
             values[state] = agent.getValue(state)
             policy[state] = agent.getPolicy(state)
         drawValues(self.gridworld, values, policy, currentState, message)
@@ -116,23 +117,21 @@ def drawValues(gridworld, values, policy, currentState = None, message = 'State 
             gridType = grid[x][y]
             isExit = (str(gridType) != gridType)
             isCurrent = (currentState == state)
-            if gridType == '#':
-                drawSquare(x, y, 0, 0, 0, None, None, True, False, isCurrent)
+
+            value = values[state]
+            action = None
+            if policy != None and state in policy:
+                action = policy[state]
+                # actions = gridworld.getPossibleActions(state)
+            # if action not in actions and 'exit' in actions:
+            #     action = 'exit'
+            valString = '%.2f' % value
+            if gridType == 'P':
+                drawSquare(x, y, value, minValue, maxValue, valString, action, False, isExit, isCurrent, isPickup=True)
+            elif gridType == 'D':
+                drawSquare(x, y, value, minValue, maxValue, valString, action, False, isExit, isCurrent, isDrop=True)
             else:
-                value = values[state]
-                action = None
-                if policy != None and state in policy:
-                    action = policy[state]
-                    actions = gridworld.getPossibleActions(state)
-                if action not in actions and 'exit' in actions:
-                    action = 'exit'
-                valString = '%.2f' % value
-                if gridType == 'P':
-                    drawSquare(x, y, value, minValue, maxValue, valString, action, False, isExit, isCurrent, isPickup=True)
-                elif gridType == 'D':
-                    drawSquare(x, y, value, minValue, maxValue, valString, action, False, isExit, isCurrent, isDrop=True)
-                else:
-                    drawSquare(x, y, value, minValue, maxValue, valString, action, False, isExit, isCurrent)
+                drawSquare(x, y, value, minValue, maxValue, valString, action, False, isExit, isCurrent)
     pos = to_screen(((grid.width - 1.0) / 2.0, - 0.8))
     text( pos, TEXT_COLOR, message, "Courier", -32, "bold", "c")
 
@@ -162,14 +161,7 @@ def drawQValues(gridworld, qValues, currentState = None, message = 'State-Action
                 v = qValues[(state, action)]
                 q[action] += v
                 valStrings[action] = '%.2f' % v
-            if gridType == '#':
-                drawSquare(x, y, 0, 0, 0, None, None, True, False, isCurrent)
-            elif isExit:
-                action = 'exit'
-                value = q[action]
-                valString = '%.2f' % value
-                drawSquare(x, y, value, minValue, maxValue, valString, action, False, isExit, isCurrent)
-            else:
+
                 drawSquareQ(x, y, q, minValue, maxValue, valStrings, actions, isCurrent)
     pos = to_screen(((grid.width - 1.0) / 2.0, - 0.8))
     text( pos, TEXT_COLOR, message, "Courier", -32, "bold", "c")

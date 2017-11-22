@@ -1,16 +1,12 @@
 # valueIterationAgents.py
 # -----------------------
-# Licensing Information:  You are free to use or extend these projects for
-# educational purposes provided that (1) you do not distribute or publish
-# solutions, (2) you retain this notice, and (3) you provide clear
-# attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
-# Attribution Information: The Pacman AI projects were developed at UC Berkeley.
-# The core projects and autograders were primarily created by John DeNero
-# (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
-# Student side autograding was added by Brad Miller, Nick Hay, and
-# Pieter Abbeel (pabbeel@cs.berkeley.edu).
-
+# Licensing Information: Please do not distribute or publish solutions to this
+# project. You are free to use and extend these projects for educational
+# purposes. The Pacman AI projects were developed at UC Berkeley, primarily by
+# John DeNero (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
+# Student side autograding was added by Brad Miller, Nick Hay, and Pieter
+# Abbeel in Spring 2013.
+# For more info, see http://inst.eecs.berkeley.edu/~cs188/pacman/pacman.html
 
 import mdp, util
 
@@ -46,6 +42,20 @@ class ValueIterationAgent(ValueEstimationAgent):
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
 
+        for _ in range(0,self.iterations):
+          tmpValues = util.Counter()
+          for state in self.mdp.getStates():
+            if self.mdp.isTerminal(state):
+              tmpValues[state] = 0
+            else:
+              maxvalue = float("-inf")
+              for action in self.mdp.getPossibleActions(state):
+                total = 0
+                for nextState, prob in self.mdp.getTransitionStatesAndProbs(state,action):
+                  total += prob * (self.mdp.getReward(state,action,nextState) + (self.discount*self.values[nextState]))
+                maxvalue = max(total, maxvalue)
+                tmpValues[state] = maxvalue
+          self.values = tmpValues
 
     def getValue(self, state):
         """
@@ -60,6 +70,10 @@ class ValueIterationAgent(ValueEstimationAgent):
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
+        total = 0
+        for nextState, prob in self.mdp.getTransitionStatesAndProbs(state,action):
+          total += prob * (self.mdp.getReward(state,action,nextState) + (self.discount*self.values[nextState]))
+        return total
         util.raiseNotDefined()
 
     def computeActionFromValues(self, state):
@@ -72,6 +86,16 @@ class ValueIterationAgent(ValueEstimationAgent):
           terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
+        if self.mdp.isTerminal(state):
+          return None
+        value, policy = float("-inf"), None
+        for action in self.mdp.getPossibleActions(state):
+          tmp = self.computeQValueFromValues(state, action)
+          if tmp>=value:
+            value = tmp
+            policy = action
+        return policy
+
         util.raiseNotDefined()
 
     def getPolicy(self, state):

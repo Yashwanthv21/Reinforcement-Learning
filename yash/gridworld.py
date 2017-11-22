@@ -29,7 +29,7 @@ class Gridworld(mdp.MarkovDecisionProcess):
         self.grid = grid
 
         # parameters
-        self.livingReward = 0.0
+        self.livingReward = -1
         # self.noise = 0.2
 
     def setLivingReward(self, reward):
@@ -56,12 +56,12 @@ class Gridworld(mdp.MarkovDecisionProcess):
         Note that you can request moves into walls and
         that "exit" states transition to the terminal
         state under the special action "done".
-        """
-        if state == self.grid.terminalState:
-            return ()
-        x,y = state
-        if type(self.grid[x][y]) == int:
-            return ('exit',)
+        # """
+        # if state == self.grid.terminalState:
+        #     return ()
+        # x,y = state
+        # if type(self.grid[x][y]) == int:
+        #     return ('exit',)
         return ('north','west','south','east')
 
     def getStates(self):
@@ -69,12 +69,13 @@ class Gridworld(mdp.MarkovDecisionProcess):
         Return list of all states.
         """
         # The true terminal state.
-        states = [self.grid.terminalState]
-        for x in range(self.grid.width):
-            for y in range(self.grid.height):
-                if self.grid[x][y] != '#':
-                    state = (x,y)
-                    states.append(state)
+        # states = [self.grid.terminalState]
+        states = []
+        for x in range(1,self.grid.width+1):
+            for y in range(1,self.grid.height+1):
+                # if self.grid[x][y] != '#':
+                state = (x,y)
+                states.append(state)
         return states
 
     def getReward(self, state, action, nextState):
@@ -85,8 +86,8 @@ class Gridworld(mdp.MarkovDecisionProcess):
         departed (as in the R+N book examples, which more or
         less use this convention).
         """
-        if state == self.grid.terminalState:
-            return 0.0
+        # if state == self.grid.terminalState:
+        #     return 0.0
         x, y = state
         cell = self.grid[x][y]
         if type(cell) == int or type(cell) == float:
@@ -175,7 +176,7 @@ class Gridworld(mdp.MarkovDecisionProcess):
     def __isAllowed(self, y, x):
         if y < 0 or y >= self.grid.height: return False
         if x < 0 or x >= self.grid.width: return False
-        return self.grid[x][y] != '#'
+        return True
 
 class GridworldEnvironment(environment.Environment):
 
@@ -312,7 +313,10 @@ def runEpisode(agent, environment, discount, decision, display, message, pause, 
     totalDiscount = 1.0
     environment.reset()
     if 'startEpisode' in dir(agent): agent.startEpisode()
+
     message("BEGINNING EPISODE: "+str(episode)+"\n")
+
+    dropCount = 0
     while True:
 
         # DISPLAY CURRENT STATE
@@ -321,15 +325,17 @@ def runEpisode(agent, environment, discount, decision, display, message, pause, 
         pause()
 
         # END IF IN A TERMINAL STATE
-        actions = environment.getPossibleActions(state)
-        if len(actions) == 0:
-            message("EPISODE "+str(episode)+" COMPLETE: RETURN WAS "+str(returns)+"\n")
+        if dropCount >= 16:
+            # TODO think what to do
+            message("All Blocks dropped")
             return returns
+        # actions = environment.getPossibleActions(state)
+        # if len(actions) == 0:
+        #     message("EPISODE "+str(episode)+" COMPLETE: RETURN WAS "+str(returns)+"\n")
+        #     return returns
 
         # GET ACTION (USUALLY FROM AGENT)
         action = decision(state)
-        if action == None:
-            raise 'Error: Agent returned None action'
 
         # EXECUTE ACTION
         nextState, reward = environment.doAction(action)
@@ -344,8 +350,6 @@ def runEpisode(agent, environment, discount, decision, display, message, pause, 
         returns += reward * totalDiscount
         totalDiscount *= discount
 
-    if 'stopEpisode' in dir(agent):
-        agent.stopEpisode()
 
 def parseOptions():
     optParser = optparse.OptionParser()
@@ -446,6 +450,13 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         sys.exit(0)
 
+    # from main import Agent
+    # a = Agent()
+    # display.displayValues(a, message="VALUES AFTER " + str(opts.iters) + " ITERATIONS")
+    # display.pause()
+
+
+
     ###########################
     # GET THE AGENT
     ###########################
@@ -526,10 +537,10 @@ if __name__ == '__main__':
         pauseCallback = lambda : display.pause()
 
     # FIGURE OUT WHETHER THE USER WANTS MANUAL CONTROL (FOR DEBUGGING AND DEMOS)
-    if opts.manual:
-        decisionCallback = lambda state : getUserAction(state, mdp.getPossibleActions)
-    else:
-        decisionCallback = a.getAction
+    # if opts.manual:
+    #     decisionCallback = lambda state : getUserAction(state, mdp.getPossibleActions)
+    # else:
+    decisionCallback = a.getAction
 
     # RUN EPISODES
     if opts.episodes > 0:
