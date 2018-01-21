@@ -1,1 +1,0 @@
-http://people.revoledu.com/kardi/tutorial/ReinforcementLearning/Q-Learning-Example.htm
