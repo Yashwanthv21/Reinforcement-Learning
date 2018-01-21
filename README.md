@@ -14,7 +14,7 @@ This is game
 	● States: Each cell is a state the agent can be.
 	● Actions: There are only 6 actions. Up, Down, Right, Left, Pickup, DropOff.
 
-##Dependencies
+## Dependencies
 
 -Python 2.7
 -tkinter
@@ -22,6 +22,6 @@ This is game
 If on Ubuntu you can install tkinter for python2.7 with
 $sudo apt-get install python-tk
 
-##Usage
+## Usage
 
 Run `python Learner.py` in terminal to see the the bot in action. It'll find the optimal strategy.
