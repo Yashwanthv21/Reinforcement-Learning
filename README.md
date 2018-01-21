@@ -3,7 +3,7 @@ This is the code to implement Reinforcement Learning and learn how it works.
 
 ![Game](grid.png)
 
-##Overview
+## Overview
 
 This is game 
 
